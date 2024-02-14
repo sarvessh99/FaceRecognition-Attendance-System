@@ -1,0 +1,109 @@
+// include the library code:
+#include <LiquidCrystal.h>
+#include <cvzone.h>
+const int trigPin = 9;
+const int echoPin = 10;
+long duration;
+int distance;
+SerialData serialsendData(2,1);
+int sendvals[2];
+
+SerialData serialreceiveData(4, 1); //(numOfValsRec,digitsPerValRec)
+int valsRec[4]; // array of int with size numOfValsRec
+const int rs = 12, en = 11, d4 = 5, d5 = 4, d6 = 3, d7 = 2;  // initialize the library by associating any needed LCD interface pin
+                                                             // with the arduino pin number it is connected t
+LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
+
+void setup() {
+  // set up the LCD's number of columns and rows:
+  lcd.begin(16, 2);
+  // Print a message to the LCD
+  pinMode(13, OUTPUT);
+  pinMode(8,OUTPUT);
+  serialreceiveData.begin();
+  // put your setup code here, to run once:
+  pinMode(trigPin, OUTPUT);
+  pinMode(echoPin, INPUT);
+  Serial.begin(9600);
+  serialsendData.begin();
+}
+
+void loop() {
+  // set the cursor to column 0, line 1
+  // (note: line 1 is the second row, since counting begins with 0):
+  digitalWrite(trigPin, LOW);
+  delayMicroseconds(2);
+
+  digitalWrite(trigPin, HIGH);
+  delayMicroseconds(10);
+
+  duration = pulseIn(echoPin, HIGH);
+  distance = duration*0.034/2;
+  
+  if (distance<30)
+  {
+    int sendvals[]={0,0};
+    // Serial.print(sendvals[0]);
+     serialsendData.Send(sendvals);
+    lcd.clear();
+    lcd.setCursor(0,0);
+    lcd.print("step back");
+    delay(500);
+  }
+  if(distance>50)
+  {
+     int sendvals[]={0,0};
+    // Serial.print(sendvals[0]);
+    serialsendData.Send(sendvals);
+    lcd.clear();
+    lcd.setCursor(0,0);
+    lcd.print("step forward");
+    delay(500);
+  }
+  if (distance>40 and distance<50)
+  {
+    
+     int sendvals[]={1,1};
+    // Serial.print(sendvals[0]);
+     serialsendData.Send(sendvals);
+     serialreceiveData.Get(valsRec);
+     if (valsRec[1]==1)
+     {
+      lcd.setCursor(0,0);
+      lcd.clear();
+      lcd.print("sarvesh");
+      digitalWrite(8,HIGH);
+      delay(500);
+      digitalWrite(8,LOW);
+      lcd.clear();
+     }
+    else if (valsRec[0]==1) 
+    {
+      lcd.setCursor(0,0);
+      lcd.clear();
+      lcd.print("pranay");
+      digitalWrite(8,HIGH);
+      delay(500);
+      digitalWrite(8,LOW);
+      lcd.clear();
+    }
+    else if (valsRec[2]==1)
+    {
+      lcd.setCursor(0,0);
+      lcd.clear();
+      lcd.print("unknown face");
+      digitalWrite(13, valsRec[2]);
+      delay(500);
+      digitalWrite(13,0);
+      delay(500);
+    
+    }
+    else
+    {
+      lcd.setCursor(0,0);
+      lcd.print("no face to detect");
+    }
+    delay(500);
+  }
+}
+  
